@@ -87,6 +87,55 @@ def gerar_grafico_evasao(ano_escolhido):
     fig.update_layout(margin=dict(l=50, r=50, t=50, b=50), title_x=0.5)
     return fig
 
+# Função para gerar gráficos de despesas
+def gerar_grafico_despesas(tipo_grafico):
+    df = pd.read_csv('./data/despesas_inep.csv')
+
+    # Converter os valores para o formato numérico, removendo vírgulas e pontos
+    df['Valor Empenhado'] = df['Valor Empenhado'].replace({r"[.,]": ""}, regex=True).astype(float)
+    df['Valor Pago'] = df['Valor Pago'].replace({r"[.,]": ""}, regex=True).astype(float)
+
+    # Extrair o ano (apenas os últimos dois dígitos) da coluna 'Mês Ano'
+    df['Ano'] = df['Mês Ano'].str[-2:]
+
+    # Agrupar os valores empenhados e pagos por ano
+    despesas_por_ano = df.groupby('Ano').agg({
+        'Valor Empenhado': 'sum',
+        'Valor Pago': 'sum'
+    }).reset_index()
+
+    # Ordenar os anos em ordem crescente
+    despesas_por_ano = despesas_por_ano.sort_values(by='Ano')
+
+    fig = go.Figure()
+
+    if tipo_grafico == '1':  # Gráfico combinado
+        fig.add_trace(go.Scatter(x=despesas_por_ano['Ano'], y=despesas_por_ano['Valor Pago'], mode='lines+markers', name='Valor Pago'))
+        fig.add_trace(go.Scatter(x=despesas_por_ano['Ano'], y=despesas_por_ano['Valor Empenhado'], mode='lines+markers', name='Valor Empenhado'))
+        titulo = 'Valores Pagos e Empenhados por Ano'
+    
+    elif tipo_grafico == '2':  # Apenas valor pago
+        fig.add_trace(go.Scatter(x=despesas_por_ano['Ano'], y=despesas_por_ano['Valor Pago'], mode='lines+markers', name='Valor Pago'))
+        titulo = 'Valores Pagos por Ano'
+
+    elif tipo_grafico == '3':  # Apenas valor empenhado
+        fig.add_trace(go.Scatter(x=despesas_por_ano['Ano'], y=despesas_por_ano['Valor Empenhado'], mode='lines+markers', name='Valor Empenhado'))
+        titulo = 'Valores Empenhados por Ano'
+    
+    # Configurar layout do gráfico
+    fig.update_yaxes(title='Valores (R$)', showgrid=True, gridwidth=1, gridcolor='lightgrey', showline=True, linewidth=1, linecolor='black')
+    fig.update_xaxes(title='Anos', showgrid=True, gridwidth=1, gridcolor='lightgrey', showline=True, linewidth=1, linecolor='black')
+    fig.update_layout(
+        title=titulo,
+        autosize=False,
+        width=1200,
+        height=500,
+        plot_bgcolor='white',
+        paper_bgcolor='white',
+        title_x=0.5)
+    
+    return fig
+
 # App Dash
 app = dash.Dash(__name__)
 
@@ -120,7 +169,20 @@ app.layout = html.Div([
         ],
         value=2019
     ),
-    dcc.Graph(id='grafico-evasao')
+    dcc.Graph(id='grafico-evasao'),
+
+    html.Hr(),
+
+    dcc.Dropdown(
+        id='opcao-despesas',
+        options=[
+            {'label': 'Valores Pagos e Empenhados', 'value': '1'},
+            {'label': 'Somente Valor Pago', 'value': '2'},
+            {'label': 'Somente Valor Empenhado', 'value': '3'}
+        ],
+        value='1'
+    ),
+    dcc.Graph(id='grafico-despesas')
 ])
 
 @app.callback(
@@ -143,6 +205,13 @@ def update_grafico_pisa(_):
 )
 def update_grafico_evasao(opcao):
     return gerar_grafico_evasao(opcao)
+
+@app.callback(
+    Output('grafico-despesas', 'figure'),
+    [Input('opcao-despesas', 'value')]
+)
+def update_grafico_despesas(opcao):
+    return gerar_grafico_despesas(opcao)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
