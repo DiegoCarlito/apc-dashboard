@@ -180,11 +180,18 @@ app.layout = html.Div([
         ],
         value='1'
     ),
-    dcc.Graph(id='grafico-enem'),
-    
+
+    html.Div(
+        dcc.Graph(id='grafico-enem'),
+        style={'display': 'flex', 'justify-content': 'center'}
+    ),
+
     html.Hr(),
 
-    dcc.Graph(id='grafico-pisa'),
+    html.Div(
+        dcc.Graph(id='grafico-pisa'),
+        style={'display': 'flex', 'justify-content': 'center'}
+    ),
 
     html.Hr(),
 
@@ -196,7 +203,11 @@ app.layout = html.Div([
         ],
         value=2019
     ),
-    dcc.Graph(id='grafico-evasao'),
+
+    html.Div(
+        dcc.Graph(id='grafico-evasao'),
+        style={'display': 'flex', 'justify-content': 'center'}
+    ),
 
     html.Hr(),
 
@@ -209,11 +220,18 @@ app.layout = html.Div([
         ],
         value='1'
     ),
-    dcc.Graph(id='grafico-despesas'),
+
+    html.Div(
+        dcc.Graph(id='grafico-despesas'),
+        style={'display': 'flex', 'justify-content': 'center'}
+    ),
 
     html.Hr(),
 
-    dcc.Graph(id='grafico-aprovados')
+    html.Div(
+        dcc.Graph(id='grafico-aprovados'),
+        style={'display': 'flex', 'justify-content': 'center'}
+    )
 ])
 
 @app.callback(
