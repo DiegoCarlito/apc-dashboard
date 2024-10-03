@@ -121,8 +121,7 @@ def gerar_grafico_despesas(tipo_grafico):
     elif tipo_grafico == '3':  # Apenas valor empenhado
         fig.add_trace(go.Scatter(x=despesas_por_ano['Ano'], y=despesas_por_ano['Valor Empenhado'], mode='lines+markers', name='Valor Empenhado'))
         titulo = 'Valores Empenhados por Ano'
-    
-    # Configurar layout do gráfico
+
     fig.update_yaxes(title='Valores (R$)', showgrid=True, gridwidth=1, gridcolor='lightgrey', showline=True, linewidth=1, linecolor='black')
     fig.update_xaxes(title='Anos', showgrid=True, gridwidth=1, gridcolor='lightgrey', showline=True, linewidth=1, linecolor='black')
     fig.update_layout(
@@ -133,7 +132,35 @@ def gerar_grafico_despesas(tipo_grafico):
         plot_bgcolor='white',
         paper_bgcolor='white',
         title_x=0.5)
-    
+
+    return fig
+
+# Função para gerar gráfico da taxa de aprovação
+def gerar_grafico_aprovacao():
+    df = pd.read_csv('./data/aprovados.csv')
+
+    # Converter colunas de aprovação em valores numéricos
+    df[['1 Série', '2 Série', '3 Série', '4 Serie']] = df[['1 Série', '2 Série', '3 Série', '4 Serie']].apply(pd.to_numeric, errors='coerce')
+
+    # Filtrar apenas as linhas do Brasil
+    df_brasil = df[df['Unidade geográfica'] == 'Brasil']
+
+    # Calcular a média de cada ano (média das quatro séries)
+    df_brasil['Média Anual'] = df_brasil[['1 Série', '2 Série', '3 Série', '4 Serie']].mean(axis=1)
+
+    # Criar o gráfico de pizza
+    fig = go.Figure()
+
+    fig.add_trace(go.Pie(labels=df_brasil['Ano'], values=df_brasil['Média Anual'], 
+                        hoverinfo='label+percent', textinfo='value+percent'))
+
+    fig.update_layout(
+        title='Taxa de Aprovação no Ensino Médio (Média Anual - 2017 a 2021)',
+        autosize=False,
+        width=800,
+        height=600,
+        title_x=0.5)
+
     return fig
 
 # App Dash
@@ -182,7 +209,11 @@ app.layout = html.Div([
         ],
         value='1'
     ),
-    dcc.Graph(id='grafico-despesas')
+    dcc.Graph(id='grafico-despesas'),
+
+    html.Hr(),
+
+    dcc.Graph(id='grafico-aprovados')
 ])
 
 @app.callback(
@@ -212,6 +243,13 @@ def update_grafico_matriculas(opcao):
 )
 def update_grafico_despesas(opcao):
     return gerar_grafico_despesas(opcao)
+
+@app.callback(
+    Output('grafico-aprovados', 'figure'),
+    [Input('grafico-aprovados', 'id')]
+)
+def update_grafico_aprovados(_):
+    return gerar_grafico_aprovacao()
 
 if __name__ == '__main__':
     app.run_server(debug=True)
