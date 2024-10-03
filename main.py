@@ -76,11 +76,11 @@ def filtrar_ano(df, ano_escolhido):
     return df[df['Ano'] == ano_escolhido].copy()
 
 # Função para o gráfico de matrículas
-def gerar_grafico_evasao(ano_escolhido):
+def gerar_grafico_matriculas(ano_escolhido):
     df = pd.read_csv('./data/matriculas.csv')
 
     # Configurações do gráfico
-    configuracoes = {"title": {"text": f"Evasões escolares em {ano_escolhido}"}}
+    configuracoes = {"title": {"text": f"Matrículas escolares em {ano_escolhido}"}}
 
     fig = px.bar(filtrar_ano(df, ano_escolhido), x="Estado", y="Alunos", title=configuracoes["title"]["text"])
 
@@ -203,8 +203,8 @@ def update_grafico_pisa(_):
     Output('grafico-evasao', 'figure'),
     [Input('opcao-ano', 'value')]
 )
-def update_grafico_evasao(opcao):
-    return gerar_grafico_evasao(opcao)
+def update_grafico_matriculas(opcao):
+    return gerar_grafico_matriculas(opcao)
 
 @app.callback(
     Output('grafico-despesas', 'figure'),
