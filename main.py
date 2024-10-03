@@ -1,5 +1,6 @@
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.express as px
 import dash
 from dash import dcc, html, Input, Output
 
@@ -22,7 +23,7 @@ def gerar_grafico_enem(df, colunas, titulo):
         barmode='group',
         title_x=0.5,
     )
-    
+
     return fig
 
 # Função principal para seleção dos gráficos do ENEM
@@ -67,12 +68,27 @@ def gerar_grafico_pisa():
         paper_bgcolor='white',
         barmode='group',
         title_x=0.5)
-    
+
+    return fig
+
+# Função para filtrar o ano do gráfico de matrículas
+def filtrar_ano(df, ano_escolhido):
+    return df[df['Ano'] == ano_escolhido].copy()
+
+# Função para o gráfico de matrículas
+def gerar_grafico_evasao(ano_escolhido):
+    df = pd.read_csv('./data/matriculas.csv')
+
+    # Configurações do gráfico
+    configuracoes = {"title": {"text": f"Evasões escolares em {ano_escolhido}"}}
+
+    fig = px.bar(filtrar_ano(df, ano_escolhido), x="Estado", y="Alunos", title=configuracoes["title"]["text"])
+
+    fig.update_layout(margin=dict(l=50, r=50, t=50, b=50), title_x=0.5)
     return fig
 
 # App Dash
 app = dash.Dash(__name__)
-
 
 app.layout = html.Div([
     dcc.Dropdown(
@@ -92,14 +108,26 @@ app.layout = html.Div([
     
     html.Hr(),
 
-    dcc.Graph(id='grafico-pisa')
+    dcc.Graph(id='grafico-pisa'),
+
+    html.Hr(),
+
+    dcc.Dropdown(
+        id='opcao-ano',
+        options=[
+            {'label': '2019', 'value': 2019},
+            {'label': '2022', 'value': 2022}
+        ],
+        value=2019
+    ),
+    dcc.Graph(id='grafico-evasao')
 ])
 
 @app.callback(
     Output('grafico-enem', 'figure'),
     [Input('opcao-grafico-enem', 'value')]
 )
-def update_grafico(opcao):
+def update_grafico_enem(opcao):
     return grafico_enem_por_opcao(opcao)
 
 @app.callback(
@@ -108,6 +136,13 @@ def update_grafico(opcao):
 )
 def update_grafico_pisa(_):
     return gerar_grafico_pisa()
+
+@app.callback(
+    Output('grafico-evasao', 'figure'),
+    [Input('opcao-ano', 'value')]
+)
+def update_grafico_evasao(opcao):
+    return gerar_grafico_evasao(opcao)
 
 if __name__ == '__main__':
     app.run_server(debug=True)
